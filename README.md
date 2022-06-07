@@ -1,6 +1,6 @@
-# Google_certificate_capstone
-Cyclistic data analysis _ part of google certificate capstone project 
-#####################################################
+### Google_certificate_capstone
+#Cyclistic data analysis _ part of google certificate capstone project 
+
 
 The Google certificate ends with a capstone project, and the choice is given to either study of two existing dataset or study one of our own choice. 
 I have decided therefore to start with the studying the Cyclistic dataset. 
