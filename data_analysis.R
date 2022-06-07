@@ -1,9 +1,67 @@
-#New working directory for trip duration study 
+#The biggest issue with the data is the size of it. The dataset has Millions of rows and in several files
+#Excel cant process the number of rows, and the my hardware cant process more than a few files
+#In terms of time to process a function, and the result obtained, it was easier to split the data in many block and analysed separately
+
+
+#The first step is to download all the raw data in the folder and set it as the work direcotry
+setwd("/users/happy/Desktop/google certificate capstone")
+
+# In the fowlloing steps the data for one year is grouped into one set of data (for example the 2017 data is read)
+# Each csv file is read as a DF and stored (for ex, 2017-Q1 is read as data_1)
+data_1 <- read.csv('Divvy_Trips_2017_Q1.csv')
+data_2 <- read.csv('Divvy_Trips_2017_Q2.csv')
+data_3 <- read.csv('Divvy_Trips_2017_Q3.csv')
+data_4 <- read.csv('Divvy_Trips_2017_Q4.csv')
+
+
+#Some of the columns are renamed to generate a set of consistency across all data available (note that over the years a lot of columns had changed names)
+#In the example below trip_in is renamed ride_id, etc...
+
+data_1_2 <- rename(data_1, ride_id = trip_id, started_at = start_time, ended_at = end_time, member_casual = usertype)
+data_2_2 <- rename(data_2, ride_id = trip_id, started_at = start_time, ended_at = end_time, member_casual = usertype)
+data_3_2 <- rename(data_3, ride_id = trip_id, started_at = start_time, ended_at = end_time, member_casual = usertype)
+data_4_2 <- rename(data_4, ride_id = trip_id, started_at = start_time, ended_at = end_time, member_casual = usertype)
+
+
+
+#As the data is huge, it was decided to select onlyt the data which is analysed.
+#In here only the ride_id, the time data and the category are selected
+#This allows the file to be less heavy and easier to process with my hardware.
+
+data_1_1 <- select(data_1_2, ride_id, started_at, ended_at, member_casual)
+data_2_1 <- select(data_2_2, ride_id, started_at, ended_at, member_casual)
+data_3_1 <- select(data_3_2, ride_id, started_at, ended_at, member_casual)
+data_4_1 <- select(data_4_2, ride_id, started_at, ended_at, member_casual)
+
+#All the different filtered and selected data is appended to create a file that comprises the full year.
+#For ex, all dataframe are appended into one new DF called All_2017, where the full data for 2017 is present.
+
+All_2017 <- bind_rows(data_1_1, data_2_1, data_3_1, data_4_1)
+
+#Now that this df for a whole year is created, its written down as csv file.
+
+write.csv(All_2017, file = '/Users/happy/Desktop/Divvy/Time_data/All_2017_time_member.csv')
+
+
+#=========================================================================================================
+#This process up to now has been carried out separately over all the years from 2013-2022.
+#Every file (corresponding to a year) is analysed separatly and an output file is created.
+#These final transformed data will be combined to generate visual graphs across years
+
+#==========================================================================================================
+
+
+
+#The second part of the work consists of anlysing the simplified and "cleaned" data set.
+#First lets set the new working directory for trip duration study 
+
 setwd("/users/happy/Desktop/Divvy/Time_data")
 library(tidyverse)
 library(lubridate)
-#read the files and add them to a DF
-#--------------------------------------------
+
+
+#read the simplified files files and add them to a DF
+#------------------------------------------------------------------------
 
 df_1 <- read.csv('All_2017_time_member.csv')
 df_2 <- read.csv('All_2018_time_member.csv')
@@ -11,23 +69,35 @@ df_2 <- read.csv('All_2018_time_member.csv')
 #Reassign to the desired values (we will go with the current 2020 labels)
 #------------------------------------------------------------------------
 df_1 <-  df_1 %>% mutate(member_casual = recode(member_casual,"Subscriber" = "member","Customer" = "casual"))
-df_2 <-  df_2 %>% mutate(member_casual = recode(member_casual,"Subscriber" = "member","Customer" = "casual"))
 
 
+#Case 1
 #first convert the time from char to datetime
-#---------------------------------------------
-
-df_1 <-  as.Date(date, format="%m/%d/%Y") 
-test <- as.Date(date, "%m/%d/%Y")
                 
-df_2 <-  mutate(df_2, started_at = as_datetime(started_at) ,ended_at = as_datetime(ended_at)) 
+df_1 <-  mutate(df_1, started_at = as_datetime(started_at) ,ended_at = as_datetime(ended_at)) 
 
-methods(as_date)
-?methods (as_date)
-#if this doesnt work (when date time format is not correct), just split the existing data in required form)
+#..............................................................................................................
+
+#Case 2
+#if this doesnt work (when date time format is not correct, e.g. some date are present as M/Y instead of M/d/Y)
+#The solution is splitting the string and defining what each data is
+
+#split date to day month and year 
+df_1$copy <- df_1$date
+df_1 <- df_1 %>% separate(copy, c('month', 'day', 'year'), "/")
+
+#split time in hour month minutes and seconds 
+df_1$copy2 <- df_1$time
+df_1 <- df_1 %>% separate(copy2, c('hour', 'minute', 'seconds'), ":")
+
+#Check unique values to see if the data seems correct (e.g. months shoudl go from 1 to 12)
+unique(df_1$month)
+unique(df_1$year)
+unique(df_1$day)
 
 #-------------------------------------------------------
-#Lets Add New columns
+#Case 1
+#Lets Add New columns with the use if lubridate 
 #-------------------------------------------------------
 #lets create new columns that take into account the dates 
 df_2$date <- as.Date(df_2$started_at)
@@ -36,8 +106,6 @@ df_2$year <- format(as.Date(df_2$date),"%Y")
 df_2$day <- format(as.Date(df_2$date),"%d")
 df_2$day_of_week <- format(as.Date(df_2$date),"%A")
 df_2$hour_of_day <- format(as.POSIXct(df_2$started_at), "%H")
-
-
 
 
 #used difftime to get the duration of the trip
