@@ -1,7 +1,23 @@
-#The biggest issue with the data is the size of it. The dataset has Millions of rows and in several files
-#Excel cant process the number of rows, and the my hardware cant process more than a few files
-#In terms of time to process a function, and the result obtained, it was easier to split the data in many block and analysed separately
+###############################
+#Cyclistic Data study
+###############################
 
+#The data is locted as a set of csv files availble through a link. 
+#The biggest issue with this set of data is the size and number of files.
+#All the files have see downloaded to the loacl hardware. 
+#=========================================================================
+#The dataset has Millions of rows in each csv file
+#Excel can't process the number of rows, and my hardware can't process more than a few files
+#In order to optimise the work load, it was decided to split the data in small parts and analyse them separately
+
+###################################################################################################################
+#Cleaning Data
+###################################################################################################################
+
+
+#===========================================
+#Step 1 - Group the data by year
+#===========================================
 
 #The first step is to download all the raw data in the folder and set it as the work direcotry
 setwd("/users/happy/Desktop/google certificate capstone")
