@@ -130,11 +130,9 @@ df_2$day <- format(as.Date(df_2$date),"%d")
 df_2$day_of_week <- format(as.Date(df_2$date),"%A")
 df_2$hour_of_day <- format(as.POSIXct(df_2$started_at), "%H")
 
-
 #used difftime to get the duration of the trip
 #-------------------------------------------------------
 df_1$trip_duration <- difftime(df_1$ended_at, df_1$started_at)
-
 
 # Convert "trip_duration" from Factor to numeric so we can run calculations on the data
 #--------------------------------------------------------
@@ -148,28 +146,40 @@ is.numeric(df_1$trip_duration)
 #........................................................
 #Double check data
 #........................................................
-#colnames(df_1)
-#dim(df_1)
-#summary(df_1)
-#head(df_1)
-#str(df_1) 
-
+colnames(df_1)
+dim(df_1)
+summary(df_1)
+head(df_1)
+str(df_1) 
 
 #Creation of a V2 without negative values of trip duration and HQ
-#----------------------------------------------------------
+#----------------------------------------------------------------
 df_2 <- df_1[!(df_1$trip_duration<0),]
 
 #Check data is clean of negative values 
+#----------------------------------------------------------------
 summary(df_2)
-#head(df_2)
+head(df_2)
 
-#=====================================
-# STEP 4: CONDUCT DESCRIPTIVE ANALYSIS
-#=====================================
+#-------------------------------------------------------------------------------------------------------------
+#Case 2
+#transform the collumns into one date column recognised by lubridate (this is to retrieve the day of the week)
+#remove the time variant to make the DF lighter
+#-------------------------------------------------------------------------------------------------------------
+
+df_2 <- subset(df_1, select = -c(seconds, date, time))
+df_2$date2 <- paste(df_2$year,"-",df_2$month,"-",df_2$day)
+df_2 <-  mutate(df_2, date2 = as_date(date2)) 
+df_2$day_of_week <- format(as.Date(df_2$date2),"%A")
 
 #Summary of Trip_duration 
 #------------------------------------------------------------
 summary(df_2$trip_duration)
+
+#=====================================
+# STEP 3: CONDUCT DESCRIPTIVE ANALYSIS
+#=====================================
+
 
 # Compare members and casual users
 #------------------------------------------------------------
@@ -237,24 +247,37 @@ df_2 %>%
   geom_col(position = "dodge")
 
 #=================================================
-# STEP 5: EXPORT SUMMARY FILE FOR FURTHER ANALYSIS
+# STEP 4: EXPORT SUMMARY FILE FOR FURTHER ANALYSIS
 #=================================================
+
 # Create a csv file that we will visualize in Excel, Tableau, or my presentation software
+#4 files are created, 2 set of average data and 2 set of counts, each set analysed by day of the week and by month
+#------------------------------------------------------------------------------------------------------------------
+
+#Average and cout of trip duration by day of the way 
+#-------------------------------------------------------
 average <- setNames(aggregate(df_2$trip_duration ~ df_2$member_casual + df_2$day_of_week, FUN = mean), c("member_casual", "day_of_week", "Avg_trip"))
 counts <- setNames(aggregate(df_2$trip_duration ~ df_2$member_casual + df_2$day_of_week, FUN = length), c("member_casual", "day_of_week", "num_trip"))
 
+#Average and cout of trip duration by month 
+#-------------------------------------------------------
 average_month <- setNames(aggregate(df_2$trip_duration ~ df_2$member_casual + df_2$month, FUN = mean) , c("member_casual", "month", "Avg_trip"))
 counts_months <- setNames(aggregate(df_2$trip_duration ~ df_2$member_casual + df_2$month, FUN = length), c("member_casual", "month", "num_trip"))
 
-
+#write a new csv file with the average and counts by the average ride
+#--------------------------------------------------------------------
 write.csv(average, file = '/Users/happy/Desktop/Divvy/Time_data/analysed data/2018_avg_ride.csv')
 write.csv(counts, file = '/Users/happy/Desktop/Divvy/Time_data/analysed data/2018_num_rides.csv')
 
+#write a new csv file with the average and counts by month
+#--------------------------------------------------------------------
 write.csv(average_month, file = '/Users/happy/Desktop/Divvy/Time_data/analysed data/2018_avg_ride_months.csv')
 write.csv(counts_months, file = '/Users/happy/Desktop/Divvy/Time_data/analysed data/2018_num_rides_months.csv')
 
-#----------------------------
-#will be needed
-# Reassign to the desired values (we will go with the current 2020 labels)
-#all_trips <-  all_trips %>% mutate(member_casual = recode(member_casual,"Subscriber" = "member","Customer" = "casual"))
+#==============================================================================================================================================================
+#==============================================================================================================================================================
+#==============================================================================================================================================================
 
+#The cvs files written are appended by excel as the size of the data allows for it to be managed easily.
+#Furthermore this allows for double checking the coherence of the data observed.
+#The new files created are uploaded to the folder and analysed in a new notebook. 
